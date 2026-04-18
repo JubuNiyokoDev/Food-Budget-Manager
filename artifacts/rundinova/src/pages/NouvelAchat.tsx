@@ -104,7 +104,7 @@ export default function NouvelAchat() {
       qc.invalidateQueries({ queryKey: ["/api/achats"] });
       qc.invalidateQueries({ queryKey: ["/api/dashboard"] });
       qc.invalidateQueries({ queryKey: ["/api/budgets"] });
-      navigate("/historique");
+      navigate("/alimentaire/historique");
     } catch (e: any) {
       const msg = e?.response?.data?.message ?? e?.message ?? "Erreur inconnue";
       toast({ title: "Erreur", description: msg, variant: "destructive" });
