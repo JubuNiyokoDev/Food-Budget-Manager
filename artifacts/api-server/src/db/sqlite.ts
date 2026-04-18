@@ -26,7 +26,7 @@ export function initDatabase() {
     CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nom TEXT NOT NULL UNIQUE,
-      emoji TEXT DEFAULT '📦',
+      emoji TEXT DEFAULT 'Package',
       couleur TEXT DEFAULT '#6B7280',
       ordre INTEGER DEFAULT 0,
       actif BOOLEAN DEFAULT 1,
@@ -39,7 +39,7 @@ export function initDatabase() {
       nom TEXT NOT NULL,
       nom_local TEXT,
       categorie_id INTEGER REFERENCES categories(id),
-      emoji TEXT DEFAULT '🛒',
+      emoji TEXT DEFAULT 'ShoppingCart',
       unite TEXT NOT NULL DEFAULT 'unité',
       frequence TEXT DEFAULT 'mensuel',
       quantite_prevue_mois REAL DEFAULT 1,
@@ -108,7 +108,30 @@ export function initDatabase() {
     );
   `);
 
+  runMigrations();
   seedInitialData();
+}
+
+function runMigrations() {
+  const emojiToIcon: Record<string, string> = {
+    "🌾": "Wheat", "🥔": "Leaf", "🥦": "Salad", "🫘": "Egg",
+    "🥩": "Beef", "🧂": "Droplets", "📦": "Package", "🛒": "ShoppingCart",
+    "🍚": "Utensils", "🍞": "Croissant", "🍝": "UtensilsCrossed",
+    "🍌": "Banana", "🍠": "Leaf", "🍅": "Apple", "🥬": "Salad",
+    "🌿": "Sprout", "🥕": "Carrot", "🧅": "Droplets", "🥒": "Leaf",
+    "🍬": "Cookie",
+  };
+
+  const updateCat = db.prepare("UPDATE categories SET emoji = ? WHERE emoji = ?");
+  const updateProd = db.prepare("UPDATE produits SET emoji = ? WHERE emoji = ?");
+
+  const migrateAll = db.transaction(() => {
+    for (const [emoji, icon] of Object.entries(emojiToIcon)) {
+      updateCat.run(icon, emoji);
+      updateProd.run(icon, emoji);
+    }
+  });
+  migrateAll();
 }
 
 function seedInitialData() {
@@ -152,13 +175,13 @@ function seedInitialData() {
   `);
 
   const categories = [
-    ["Céréales", "🌾", "#F59E0B", 1],
-    ["Féculents", "🥔", "#D97706", 2],
-    ["Légumes", "🥦", "#16A34A", 3],
-    ["Protéines végétales", "🫘", "#7C3AED", 4],
-    ["Protéines animales", "🥩", "#DC2626", 5],
-    ["Condiments", "🧂", "#0EA5E9", 6],
-    ["Autres", "📦", "#6B7280", 7],
+    ["Céréales", "Wheat", "#F59E0B", 1],
+    ["Féculents", "Leaf", "#D97706", 2],
+    ["Légumes", "Salad", "#16A34A", 3],
+    ["Protéines végétales", "Egg", "#7C3AED", 4],
+    ["Protéines animales", "Beef", "#DC2626", 5],
+    ["Condiments", "Droplets", "#0EA5E9", 6],
+    ["Autres", "Package", "#6B7280", 7],
   ];
 
   const insertCats = db.transaction(() => {
@@ -177,23 +200,23 @@ function seedInitialData() {
   `);
 
   const produits = [
-    ["riz", "Riz", "Umuceri", "Céréales", "🍚", "kg", "mensuel", 20, 9750, 195000, 1],
-    ["pain", "Pain", "Uburodoka", "Céréales", "🍞", "jour", "journalier", 30, 4000, 120000, 2],
-    ["spaghetti", "Spaghetti", "Spaghetti", "Céréales", "🍝", "paquet", "mensuel", 3, 7000, 21000, 3],
-    ["banane", "Banane plantain", "Igitoke", "Féculents", "🍌", "kg", "bi-mensuel", 24, 1000, 120000, 4],
-    ["pomme_de_terre", "Pomme de terre", "Ikijumbu", "Féculents", "🥔", "kg", "bi-mensuel", 30, 2000, 60000, 5],
-    ["indore", "Patate douce", "Indore", "Féculents", "🍠", "kg", "bi-mensuel", 30, 2000, 60000, 6],
-    ["tomates", "Tomates", "Itomaati", "Légumes", "🍅", "lot", "mensuel", 1, 200000, 200000, 7],
-    ["amahoro", "Légume Amahoro", "Amahoro", "Légumes", "🥬", "lot", "mensuel", 1, 60000, 60000, 8],
-    ["amashu", "Amashu", "Amashu", "Légumes", "🌿", "achat", "bi-mensuel", 15, 3000, 45000, 9],
-    ["carottes", "Carottes", "Irengareepa", "Légumes", "🥕", "achat", "bi-mensuel", 15, 3000, 45000, 10],
-    ["oignons", "Oignons", "Ibitunguru", "Légumes", "🧅", "kg", "bi-hebdo", 12, 5000, 60000, 11],
-    ["ikarote", "Ikarote", "Ikarote", "Légumes", "🥕", "unité", "mensuel", 1, 25000, 25000, 12],
-    ["ibogaba", "Courge", "Ibogaba", "Légumes", "🥒", "achat", "mensuel", 1, 3000, 3000, 13],
-    ["haricot", "Haricot", "Ibiharage", "Protéines végétales", "🫘", "kg", "journalier", 45, 3100, 139500, 14],
-    ["viande", "Viande", "Inyama", "Protéines animales", "🥩", "achat", "hebdomadaire", 4, 30000, 120000, 15],
-    ["sel", "Sel", "Umunyu", "Condiments", "🧂", "kg", "mensuel", 2, 7500, 15000, 16],
-    ["sucre", "Sucre", "Isukari", "Condiments", "🍬", "kg", "mensuel", 5, 600, 3000, 17],
+    ["riz", "Riz", "Umuceri", "Céréales", "Utensils", "kg", "mensuel", 20, 9750, 195000, 1],
+    ["pain", "Pain", "Uburodoka", "Céréales", "Croissant", "jour", "journalier", 30, 4000, 120000, 2],
+    ["spaghetti", "Spaghetti", "Spaghetti", "Céréales", "UtensilsCrossed", "paquet", "mensuel", 3, 7000, 21000, 3],
+    ["banane", "Banane plantain", "Igitoke", "Féculents", "Banana", "kg", "bi-mensuel", 24, 1000, 120000, 4],
+    ["pomme_de_terre", "Pomme de terre", "Ikijumbu", "Féculents", "Leaf", "kg", "bi-mensuel", 30, 2000, 60000, 5],
+    ["indore", "Patate douce", "Indore", "Féculents", "Leaf", "kg", "bi-mensuel", 30, 2000, 60000, 6],
+    ["tomates", "Tomates", "Itomaati", "Légumes", "Apple", "lot", "mensuel", 1, 200000, 200000, 7],
+    ["amahoro", "Légume Amahoro", "Amahoro", "Légumes", "Salad", "lot", "mensuel", 1, 60000, 60000, 8],
+    ["amashu", "Amashu", "Amashu", "Légumes", "Sprout", "achat", "bi-mensuel", 15, 3000, 45000, 9],
+    ["carottes", "Carottes", "Irengareepa", "Légumes", "Carrot", "achat", "bi-mensuel", 15, 3000, 45000, 10],
+    ["oignons", "Oignons", "Ibitunguru", "Légumes", "Droplets", "kg", "bi-hebdo", 12, 5000, 60000, 11],
+    ["ikarote", "Ikarote", "Ikarote", "Légumes", "Carrot", "unité", "mensuel", 1, 25000, 25000, 12],
+    ["ibogaba", "Courge", "Ibogaba", "Légumes", "Leaf", "achat", "mensuel", 1, 3000, 3000, 13],
+    ["haricot", "Haricot", "Ibiharage", "Protéines végétales", "Egg", "kg", "journalier", 45, 3100, 139500, 14],
+    ["viande", "Viande", "Inyama", "Protéines animales", "Beef", "achat", "hebdomadaire", 4, 30000, 120000, 15],
+    ["sel", "Sel", "Umunyu", "Condiments", "Droplets", "kg", "mensuel", 2, 7500, 15000, 16],
+    ["sucre", "Sucre", "Isukari", "Condiments", "Cookie", "kg", "mensuel", 5, 600, 3000, 17],
   ];
 
   const insertProduits = db.transaction(() => {

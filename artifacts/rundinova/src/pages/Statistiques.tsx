@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGetStatistiques } from "@workspace/api-client-react";
 import { formatFBu, getMoisCurrent, getProgressColor } from "@/lib/format";
+import { IconRenderer } from "@/components/IconRenderer";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, AreaChart, Area
@@ -70,7 +71,12 @@ export default function Statistiques() {
                   return (
                     <motion.tr key={i} className="hover:bg-muted/20 transition-colors"
                       initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.025, duration: 0.3 }}>
-                      <td className="px-4 py-3 font-medium">{d.emoji && <span className="mr-1">{d.emoji}</span>}{d.produit_nom}</td>
+                      <td className="px-4 py-3 font-medium">
+                        <div className="flex items-center gap-2">
+                          {d.emoji && <div className="w-6 h-6 rounded bg-muted/50 flex items-center justify-center flex-shrink-0"><IconRenderer name={d.emoji} className="w-3 h-3 text-muted-foreground" /></div>}
+                          {d.produit_nom}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-muted-foreground text-xs">{d.categorie_nom}</td>
                       <td className="px-4 py-3 text-right tabular-nums">{d.nombre_achats}</td>
                       <td className="px-4 py-3 text-right tabular-nums">{d.budget_prevu ? formatFBu(d.budget_prevu) : "—"}</td>

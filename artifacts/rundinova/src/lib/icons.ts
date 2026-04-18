@@ -1,0 +1,70 @@
+import * as LucideIcons from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+export const FOOD_ICONS: { name: string; label: string; group: string }[] = [
+  { name: "Wheat", label: "Céréales", group: "Alimentaire" },
+  { name: "Croissant", label: "Pain/Viennoiserie", group: "Alimentaire" },
+  { name: "Pizza", label: "Pizza", group: "Alimentaire" },
+  { name: "Sandwich", label: "Sandwich", group: "Alimentaire" },
+  { name: "Beef", label: "Viande", group: "Alimentaire" },
+  { name: "Fish", label: "Poisson", group: "Alimentaire" },
+  { name: "Egg", label: "Œuf/Protéines", group: "Alimentaire" },
+  { name: "Milk", label: "Lait", group: "Alimentaire" },
+  { name: "Coffee", label: "Café", group: "Alimentaire" },
+  { name: "Cookie", label: "Biscuit/Sucre", group: "Alimentaire" },
+  { name: "IceCream2", label: "Dessert", group: "Alimentaire" },
+  { name: "Salad", label: "Salade", group: "Alimentaire" },
+  { name: "Soup", label: "Soupe", group: "Alimentaire" },
+  { name: "Apple", label: "Fruit", group: "Alimentaire" },
+  { name: "Cherry", label: "Cerise", group: "Alimentaire" },
+  { name: "Grape", label: "Raisin", group: "Alimentaire" },
+  { name: "Banana", label: "Banane", group: "Alimentaire" },
+  { name: "Carrot", label: "Carotte", group: "Légumes" },
+  { name: "Leaf", label: "Feuille/Légume", group: "Légumes" },
+  { name: "Sprout", label: "Pousse", group: "Légumes" },
+  { name: "Flame", label: "Épice/Feu", group: "Légumes" },
+  { name: "Droplets", label: "Condiment", group: "Légumes" },
+  { name: "Utensils", label: "Ustensiles", group: "Cuisine" },
+  { name: "UtensilsCrossed", label: "Couverts", group: "Cuisine" },
+  { name: "ChefHat", label: "Chef", group: "Cuisine" },
+  { name: "Microwave", label: "Micro-ondes", group: "Cuisine" },
+  { name: "Package", label: "Colis", group: "Commerce" },
+  { name: "ShoppingCart", label: "Panier", group: "Commerce" },
+  { name: "ShoppingBag", label: "Sac", group: "Commerce" },
+  { name: "Store", label: "Magasin", group: "Commerce" },
+  { name: "Tag", label: "Étiquette", group: "Commerce" },
+  { name: "Boxes", label: "Stocks", group: "Commerce" },
+  { name: "Archive", label: "Archive", group: "Commerce" },
+  { name: "Truck", label: "Livraison", group: "Commerce" },
+  { name: "Star", label: "Favori", group: "Général" },
+  { name: "Heart", label: "Favori", group: "Général" },
+  { name: "Globe", label: "Monde", group: "Général" },
+  { name: "Home", label: "Maison", group: "Général" },
+  { name: "Calendar", label: "Calendrier", group: "Général" },
+  { name: "Clock", label: "Horloge", group: "Général" },
+  { name: "MapPin", label: "Lieu", group: "Général" },
+  { name: "Coins", label: "Pièces", group: "Général" },
+  { name: "Wallet", label: "Portefeuille", group: "Général" },
+  { name: "Receipt", label: "Reçu", group: "Général" },
+  { name: "BarChart3", label: "Graphique", group: "Général" },
+  { name: "Layers", label: "Couches", group: "Général" },
+  { name: "Grid3x3", label: "Grille", group: "Général" },
+  { name: "Circle", label: "Cercle", group: "Général" },
+  { name: "Square", label: "Carré", group: "Général" },
+  { name: "Zap", label: "Énergie", group: "Général" },
+];
+
+export function getIconComponent(name: string): LucideIcon {
+  const icons = LucideIcons as unknown as Record<string, LucideIcon>;
+  return icons[name] ?? icons["Package"];
+}
+
+export const EMOJI_TO_ICON_MAP: Record<string, string> = {
+  "🌾": "Wheat", "🥔": "Leaf", "🥦": "Salad", "🫘": "Egg",
+  "🥩": "Beef", "🧂": "Droplets", "📦": "Package", "🛒": "ShoppingCart",
+  "🍚": "Utensils", "🍞": "Croissant", "🍝": "UtensilsCrossed",
+  "🍌": "Banana", "🍠": "Leaf", "🍅": "Apple", "🥬": "Salad",
+  "🌿": "Sprout", "🥕": "Carrot", "🧅": "Droplets", "🥒": "Leaf",
+  "🍬": "Cookie", "🐟": "Fish", "🥚": "Egg", "☕": "Coffee",
+  "🍎": "Apple", "🍒": "Cherry", "🍇": "Grape",
+};

@@ -3,7 +3,9 @@ import {
   useGetConfig, useUpdateConfig, useGetCategories, useCreateCategorie, useUpdateCategorie, useDeleteCategorie,
   useImportBackup, useSendEmailBackup
 } from "@workspace/api-client-react";
-import { Save, Loader2, Upload, Download, Mail, Plus, Pencil, Trash2, X } from "lucide-react";
+import { Save, Loader2, Upload, Download, Mail, Plus, Pencil, Trash2, X, Palette } from "lucide-react";
+import { IconRenderer } from "@/components/IconRenderer";
+import { IconPicker } from "@/components/IconPicker";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,6 +56,7 @@ export default function Parametres() {
   const [savingConfig, setSavingConfig] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [modalCateg, setModalCateg] = useState<{ id?: number; nom: string; couleur: string; emoji: string } | null>(null);
+  const [showCatIconPicker, setShowCatIconPicker] = useState(false);
   const [activeSection, setActiveSection] = useState("general");
 
   useEffect(() => {
@@ -204,7 +207,7 @@ export default function Parametres() {
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.28, ease }}>
             <div className="flex justify-end">
               <motion.button whileTap={{ scale: 0.97 }}
-                onClick={() => setModalCateg({ nom: "", couleur: "#22c55e", emoji: "🛒" })}
+                onClick={() => { setShowCatIconPicker(false); setModalCateg({ nom: "", couleur: "#22c55e", emoji: "ShoppingCart" }); }}
                 className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary/90 shadow-sm transition-colors">
                 <Plus className="w-4 h-4" />
                 Nouvelle catégorie
@@ -214,7 +217,7 @@ export default function Parametres() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-muted/30">
-                    <th className="text-left px-5 py-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Emoji</th>
+                    <th className="text-left px-5 py-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Icône</th>
                     <th className="text-left px-4 py-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Nom</th>
                     <th className="text-left px-4 py-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Couleur</th>
                     <th className="px-4 py-3 w-20"></th>
@@ -227,7 +230,11 @@ export default function Parametres() {
                     (categories ?? []).map((c: any, i: number) => (
                       <motion.tr key={c.id} className="hover:bg-muted/20 transition-colors"
                         initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04, duration: 0.3 }}>
-                        <td className="px-5 py-3 text-xl">{c.emoji}</td>
+                        <td className="px-5 py-3">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${c.couleur}20` }}>
+                            <IconRenderer name={c.emoji} className="w-4 h-4" style={{ color: c.couleur }} />
+                          </div>
+                        </td>
                         <td className="px-4 py-3 font-medium">{c.nom}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
@@ -238,7 +245,7 @@ export default function Parametres() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1 justify-end">
                             <motion.button whileTap={{ scale: 0.88 }}
-                              onClick={() => setModalCateg({ id: c.id, nom: c.nom, couleur: c.couleur, emoji: c.emoji })}
+                              onClick={() => { setShowCatIconPicker(false); setModalCateg({ id: c.id, nom: c.nom, couleur: c.couleur, emoji: c.emoji }); }}
                               className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                               <Pencil className="w-3.5 h-3.5" />
                             </motion.button>
@@ -309,8 +316,20 @@ export default function Parametres() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-muted-foreground mb-1.5 font-medium uppercase tracking-wide">Emoji</label>
-                    <input className={inputCls} value={modalCateg.emoji} onChange={e => setModalCateg(p => p ? { ...p, emoji: e.target.value } : null)} placeholder="🛒" />
+                    <label className="block text-xs text-muted-foreground mb-1.5 font-medium uppercase tracking-wide">Icône</label>
+                    <button type="button" onClick={() => setShowCatIconPicker(true)}
+                      className="w-full flex items-center gap-2.5 bg-muted/50 rounded-xl px-3 py-2.5 text-sm hover:bg-muted transition-all focus:outline-none focus:ring-2 focus:ring-primary/30">
+                      <div className="w-6 h-6 rounded flex items-center justify-center bg-primary/10">
+                        <IconRenderer name={modalCateg.emoji || "Package"} className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-xs text-muted-foreground flex-1 text-left truncate">{modalCateg.emoji || "Choisir..."}</span>
+                      <Palette className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                    </button>
+                    {showCatIconPicker && (
+                      <div className="absolute z-[60] mt-1">
+                        <IconPicker value={modalCateg.emoji || "Package"} onChange={name => { setModalCateg(p => p ? { ...p, emoji: name } : null); setShowCatIconPicker(false); }} onClose={() => setShowCatIconPicker(false)} />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs text-muted-foreground mb-1.5 font-medium uppercase tracking-wide">Couleur</label>
