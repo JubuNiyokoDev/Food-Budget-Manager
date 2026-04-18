@@ -3,20 +3,36 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Rundinova Budget Alimentaire API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: config
+    description: Application configuration
+  - name: categories
+    description: Product categories
+  - name: produits
+    description: Food products
+  - name: budgets
+    description: Monthly budgets
+  - name: achats
+    description: Purchase records
+  - name: rapports
+    description: Report generation
+  - name: backup
+    description: Backup operations
+  - name: dashboard
+    description: Dashboard aggregates
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +40,569 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /config:
+    get:
+      operationId: getConfig
+      tags: [config]
+      summary: Get all configuration
+      responses:
+        "200":
+          description: Config list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Config"
+    put:
+      operationId: updateConfig
+      tags: [config]
+      summary: Update configuration values
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateConfigRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /categories:
+    get:
+      operationId: getCategories
+      tags: [categories]
+      summary: Get all categories
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Categorie"
+    post:
+      operationId: createCategorie
+      tags: [categories]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategorieInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Categorie"
+
+  /categories/{id}:
+    put:
+      operationId: updateCategorie
+      tags: [categories]
+      summary: Update a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategorieInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Categorie"
+    delete:
+      operationId: deleteCategorie
+      tags: [categories]
+      summary: Delete a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /produits:
+    get:
+      operationId: getProduits
+      tags: [produits]
+      summary: Get all products
+      parameters:
+        - name: actif
+          in: query
+          schema:
+            type: boolean
+        - name: categorie_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Produit"
+    post:
+      operationId: createProduit
+      tags: [produits]
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProduitInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Produit"
+
+  /produits/{id}:
+    put:
+      operationId: updateProduit
+      tags: [produits]
+      summary: Update a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProduitInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Produit"
+    delete:
+      operationId: deleteProduit
+      tags: [produits]
+      summary: Delete a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /budgets:
+    get:
+      operationId: getBudgets
+      tags: [budgets]
+      summary: Get all monthly budgets
+      responses:
+        "200":
+          description: Budgets list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BudgetMensuel"
+    post:
+      operationId: createBudget
+      tags: [budgets]
+      summary: Create a monthly budget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetMensuelInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetMensuel"
+
+  /budgets/{id}:
+    get:
+      operationId: getBudget
+      tags: [budgets]
+      summary: Get a monthly budget with product breakdown
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Budget detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetDetail"
+    put:
+      operationId: updateBudget
+      tags: [budgets]
+      summary: Update a monthly budget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetMensuelInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetMensuel"
+
+  /budgets/{id}/produits:
+    put:
+      operationId: updateBudgetProduits
+      tags: [budgets]
+      summary: Update product budgets for a month
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBudgetProduitsRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /achats:
+    get:
+      operationId: getAchats
+      tags: [achats]
+      summary: Get purchases
+      parameters:
+        - name: mois
+          in: query
+          schema:
+            type: string
+        - name: produit_id
+          in: query
+          schema:
+            type: integer
+        - name: categorie_id
+          in: query
+          schema:
+            type: integer
+        - name: lieu_achat
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Purchases with pagination
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AchatsPaginated"
+    post:
+      operationId: createAchat
+      tags: [achats]
+      summary: Record a purchase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AchatInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Achat"
+
+  /achats/{id}:
+    put:
+      operationId: updateAchat
+      tags: [achats]
+      summary: Update a purchase
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AchatInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Achat"
+    delete:
+      operationId: deleteAchat
+      tags: [achats]
+      summary: Delete a purchase
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /achats/bulk-delete:
+    post:
+      operationId: bulkDeleteAchats
+      tags: [achats]
+      summary: Delete multiple purchases
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkDeleteRequest"
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get dashboard data for current month
+      parameters:
+        - name: mois
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardData"
+
+  /statistiques:
+    get:
+      operationId: getStatistiques
+      tags: [dashboard]
+      summary: Get statistics data
+      parameters:
+        - name: mois
+          in: query
+          schema:
+            type: string
+        - name: periode
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Statistics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatistiquesData"
+
+  /rapports/generer:
+    post:
+      operationId: genererRapport
+      tags: [rapports]
+      summary: Generate a report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RapportConfig"
+      responses:
+        "200":
+          description: Report generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RapportResult"
+
+  /rapports/historique:
+    get:
+      operationId: getRapportsHistorique
+      tags: [rapports]
+      summary: Get reports history
+      responses:
+        "200":
+          description: Reports history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RapportHistorique"
+
+  /backup/export:
+    get:
+      operationId: exportBackup
+      tags: [backup]
+      summary: Export full backup as JSON
+      parameters:
+        - name: mois
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Backup data
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /backup/import:
+    post:
+      operationId: importBackup
+      tags: [backup]
+      summary: Import backup data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportBackupRequest"
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /backup/email:
+    post:
+      operationId: sendEmailBackup
+      tags: [backup]
+      summary: Send backup by email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendEmailBackupRequest"
+      responses:
+        "200":
+          description: Email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /backup/test-smtp:
+    post:
+      operationId: testSmtp
+      tags: [backup]
+      summary: Test SMTP connection
+      responses:
+        "200":
+          description: Test result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /backup/historique:
+    get:
+      operationId: getBackupHistorique
+      tags: [backup]
+      summary: Get backup history
+      responses:
+        "200":
+          description: Backup history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BackupHistorique"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +610,561 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    UpdateConfigRequest:
+      type: object
+      properties:
+        updates:
+          type: array
+          items:
+            type: object
+            properties:
+              cle:
+                type: string
+              valeur:
+                type: string
+            required: [cle, valeur]
+      required: [updates]
+
+    UpdateBudgetProduitsRequest:
+      type: object
+      properties:
+        produits:
+          type: array
+          items:
+            $ref: "#/components/schemas/BudgetProduitInput"
+      required: [produits]
+
+    BulkDeleteRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+      required: [ids]
+
+    SendEmailBackupRequest:
+      type: object
+      properties:
+        destinataire:
+          type: string
+      required: [destinataire]
+
+    ImportBackupRequest:
+      type: object
+      additionalProperties: true
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required: [success]
+
+    Config:
+      type: object
+      properties:
+        cle:
+          type: string
+        valeur:
+          type: string
+        description:
+          type: string
+        modifie_le:
+          type: string
+      required: [cle, valeur]
+
+    Categorie:
+      type: object
+      properties:
+        id:
+          type: integer
+        nom:
+          type: string
+        emoji:
+          type: string
+        couleur:
+          type: string
+        ordre:
+          type: integer
+        actif:
+          type: integer
+        cree_le:
+          type: string
+      required: [id, nom]
+
+    CategorieInput:
+      type: object
+      properties:
+        nom:
+          type: string
+        emoji:
+          type: string
+        couleur:
+          type: string
+        ordre:
+          type: integer
+        actif:
+          type: integer
+      required: [nom]
+
+    Produit:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        nom:
+          type: string
+        nom_local:
+          type: string
+        categorie_id:
+          type: integer
+        categorie_nom:
+          type: string
+        categorie_emoji:
+          type: string
+        categorie_couleur:
+          type: string
+        emoji:
+          type: string
+        unite:
+          type: string
+        frequence:
+          type: string
+        quantite_prevue_mois:
+          type: number
+        prix_unitaire:
+          type: number
+        cout_mensuel_prevu:
+          type: number
+        notes:
+          type: string
+        actif:
+          type: integer
+        ordre:
+          type: integer
+        cree_le:
+          type: string
+        modifie_le:
+          type: string
+      required: [id, code, nom, unite]
+
+    ProduitInput:
+      type: object
+      properties:
+        code:
+          type: string
+        nom:
+          type: string
+        nom_local:
+          type: string
+        categorie_id:
+          type: integer
+        emoji:
+          type: string
+        unite:
+          type: string
+        frequence:
+          type: string
+        quantite_prevue_mois:
+          type: number
+        prix_unitaire:
+          type: number
+        cout_mensuel_prevu:
+          type: number
+        notes:
+          type: string
+        actif:
+          type: integer
+        ordre:
+          type: integer
+      required: [nom, unite]
+
+    BudgetMensuel:
+      type: object
+      properties:
+        id:
+          type: integer
+        mois:
+          type: string
+        annee:
+          type: integer
+        budget_total_prevu:
+          type: number
+        nombre_personnes:
+          type: integer
+        notes:
+          type: string
+        statut:
+          type: string
+        cree_le:
+          type: string
+      required: [id, mois, annee, budget_total_prevu]
+
+    BudgetMensuelInput:
+      type: object
+      properties:
+        mois:
+          type: string
+        annee:
+          type: integer
+        budget_total_prevu:
+          type: number
+        nombre_personnes:
+          type: integer
+        notes:
+          type: string
+        statut:
+          type: string
+      required: [mois, annee, budget_total_prevu]
+
+    BudgetProduit:
+      type: object
+      properties:
+        id:
+          type: integer
+        budget_mensuel_id:
+          type: integer
+        produit_id:
+          type: integer
+        produit_nom:
+          type: string
+        produit_emoji:
+          type: string
+        categorie_nom:
+          type: string
+        quantite_prevue:
+          type: number
+        cout_prevu:
+          type: number
+        prix_unitaire_ref:
+          type: number
+        montant_depense:
+          type: number
+        notes:
+          type: string
+      required: [id, budget_mensuel_id, produit_id]
+
+    BudgetProduitInput:
+      type: object
+      properties:
+        produit_id:
+          type: integer
+        quantite_prevue:
+          type: number
+        cout_prevu:
+          type: number
+        prix_unitaire_ref:
+          type: number
+        notes:
+          type: string
+      required: [produit_id]
+
+    BudgetDetail:
+      type: object
+      properties:
+        budget:
+          $ref: "#/components/schemas/BudgetMensuel"
+        produits:
+          type: array
+          items:
+            $ref: "#/components/schemas/BudgetProduit"
+        total_depense:
+          type: number
+        total_prevu:
+          type: number
+      required: [budget, produits, total_depense, total_prevu]
+
+    Achat:
+      type: object
+      properties:
+        id:
+          type: integer
+        budget_mensuel_id:
+          type: integer
+        produit_id:
+          type: integer
+        produit_nom:
+          type: string
+        produit_emoji:
+          type: string
+        categorie_nom:
+          type: string
+        categorie_couleur:
+          type: string
+        date_achat:
+          type: string
+        quantite:
+          type: number
+        prix_paye:
+          type: number
+        prix_par_unite:
+          type: number
+        lieu_achat:
+          type: string
+        notes:
+          type: string
+        cree_le:
+          type: string
+      required: [id, produit_id, date_achat, quantite, prix_paye]
+
+    AchatInput:
+      type: object
+      properties:
+        produit_id:
+          type: integer
+        date_achat:
+          type: string
+        quantite:
+          type: number
+        prix_paye:
+          type: number
+        lieu_achat:
+          type: string
+        notes:
+          type: string
+      required: [produit_id, date_achat, quantite, prix_paye]
+
+    AchatsPaginated:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achat"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_montant:
+          type: number
+      required: [data, total, page, limit, total_montant]
+
+    KpiCard:
+      type: object
+      properties:
+        budget_total:
+          type: number
+        total_depense:
+          type: number
+        restant:
+          type: number
+        projection_fin_mois:
+          type: number
+        pourcentage_depense:
+          type: number
+        jours_restants:
+          type: integer
+        nombre_achats:
+          type: integer
+      required: [budget_total, total_depense, restant, projection_fin_mois, pourcentage_depense, jours_restants, nombre_achats]
+
+    AlertItem:
+      type: object
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+        produit_id:
+          type: integer
+        produit_nom:
+          type: string
+      required: [type, message]
+
+    DashboardData:
+      type: object
+      properties:
+        kpi:
+          $ref: "#/components/schemas/KpiCard"
+        evolution_journaliere:
+          type: array
+          items:
+            type: object
+            properties:
+              jour:
+                type: integer
+              montant:
+                type: number
+              cumule:
+                type: number
+            required: [jour, montant, cumule]
+        top_produits:
+          type: array
+          items:
+            type: object
+            properties:
+              produit_id:
+                type: integer
+              produit_nom:
+                type: string
+              emoji:
+                type: string
+              depense:
+                type: number
+              budget_prevu:
+                type: number
+              pourcentage:
+                type: number
+            required: [produit_id, produit_nom, emoji, depense, budget_prevu, pourcentage]
+        derniers_achats:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achat"
+        alertes:
+          type: array
+          items:
+            $ref: "#/components/schemas/AlertItem"
+        mois_actuel:
+          type: string
+        budget_id:
+          type: integer
+      required: [kpi, evolution_journaliere, top_produits, derniers_achats, alertes, mois_actuel]
+
+    StatProduit:
+      type: object
+      properties:
+        produit_id:
+          type: integer
+        produit_nom:
+          type: string
+        emoji:
+          type: string
+        categorie_nom:
+          type: string
+        budget_prevu:
+          type: number
+        total_depense:
+          type: number
+        nombre_achats:
+          type: integer
+        prix_moyen_unite:
+          type: number
+        ecart:
+          type: number
+        ecart_pct:
+          type: number
+      required: [produit_id, produit_nom, emoji, categorie_nom, budget_prevu, total_depense, nombre_achats, ecart, ecart_pct]
+
+    StatistiquesData:
+      type: object
+      properties:
+        par_produit:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatProduit"
+        par_categorie:
+          type: array
+          items:
+            type: object
+            properties:
+              categorie_nom:
+                type: string
+              couleur:
+                type: string
+              montant:
+                type: number
+              pourcentage:
+                type: number
+            required: [categorie_nom, couleur, montant, pourcentage]
+        evolution_mensuelle:
+          type: array
+          items:
+            type: object
+            properties:
+              mois:
+                type: string
+              total:
+                type: number
+              budget:
+                type: number
+            required: [mois, total, budget]
+        heatmap_jours:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              montant:
+                type: number
+            required: [date, montant]
+      required: [par_produit, par_categorie, evolution_mensuelle, heatmap_jours]
+
+    RapportConfig:
+      type: object
+      properties:
+        type:
+          type: string
+        periode:
+          type: string
+        format:
+          type: string
+        titre:
+          type: string
+        inclure_graphiques:
+          type: boolean
+        comparer_mois_precedent:
+          type: boolean
+      required: [type, periode, format]
+
+    RapportResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        rapport_id:
+          type: integer
+        nom_fichier:
+          type: string
+        contenu_base64:
+          type: string
+        format:
+          type: string
+        titre:
+          type: string
+      required: [success, format, titre]
+
+    RapportHistorique:
+      type: object
+      properties:
+        id:
+          type: integer
+        titre:
+          type: string
+        type:
+          type: string
+        periode:
+          type: string
+        format:
+          type: string
+        taille_octets:
+          type: integer
+        genere_le:
+          type: string
+      required: [id, titre, type, format, genere_le]
+
+    BackupHistorique:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        destination:
+          type: string
+        statut:
+          type: string
+        message:
+          type: string
+        effectue_le:
+          type: string
+      required: [id, type, statut, effectue_le]
