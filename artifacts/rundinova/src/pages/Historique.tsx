@@ -4,6 +4,9 @@ import { formatFBu, formatDate, getMoisCurrent } from "@/lib/format";
 import { Trash2, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+
+const fadeUp = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } } };
 
 export default function Historique() {
   const { toast } = useToast();
@@ -18,12 +21,14 @@ export default function Historique() {
   const params: any = { mois: moisFilter };
   if (produitFilter) params.produit_id = produitFilter;
 
-  const { data: achats } = useGetAchats(params) as any;
+  const { data: achatsResp } = useGetAchats(params) as any;
   const { data: produits } = useGetProduits() as any;
   const deleteAchatMut = useDeleteAchat();
   const bulkDeleteMut = useBulkDeleteAchats();
 
-  const filtered = (achats ?? []).filter((a: any) => {
+  const achatsList: any[] = achatsResp?.data ?? achatsResp ?? [];
+
+  const filtered = achatsList.filter((a: any) => {
     if (!search) return true;
     return a.produit_nom?.toLowerCase().includes(search.toLowerCase()) ||
            a.note?.toLowerCase().includes(search.toLowerCase());
@@ -40,9 +45,9 @@ export default function Historique() {
     setSelected(selected.length === paginated.length && paginated.length > 0 ? [] : paginated.map((a: any) => a.id));
 
   const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["getAchats"] });
-    qc.invalidateQueries({ queryKey: ["getDashboard"] });
-    qc.invalidateQueries({ queryKey: ["getBudget"] });
+    qc.invalidateQueries({ queryKey: ["/api/achats"] });
+    qc.invalidateQueries({ queryKey: ["/api/dashboard"] });
+    qc.invalidateQueries({ queryKey: ["/api/budgets"] });
   };
 
   const handleDelete = async (id: number) => {
@@ -77,25 +82,30 @@ export default function Historique() {
   });
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
+    <motion.div className="p-6 space-y-4" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.07 } } }}>
+      <motion.div className="flex items-center justify-between" variants={fadeUp}>
         <div>
           <h1 className="text-xl font-bold">Historique des achats</h1>
           <p className="text-sm text-muted-foreground">{filtered.length} achat(s) — Total : {formatFBu(totalMontant)}</p>
         </div>
-        {selected.length > 0 && (
-          <button
-            onClick={handleBulkDelete}
-            className="flex items-center gap-2 bg-red-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-red-600"
-          >
-            <Trash2 className="w-4 h-4" />
-            Supprimer ({selected.length})
-          </button>
-        )}
-      </div>
+        <AnimatePresence>
+          {selected.length > 0 && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              onClick={handleBulkDelete}
+              className="flex items-center gap-2 bg-red-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-red-600"
+            >
+              <Trash2 className="w-4 h-4" />
+              Supprimer ({selected.length})
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
-      {/* Filters */}
-      <div className="bg-card border rounded-lg p-3 flex flex-wrap gap-3 items-center">
+      <motion.div className="bg-card border rounded-lg p-3 flex flex-wrap gap-3 items-center" variants={fadeUp}>
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-muted-foreground" />
           <select
@@ -129,10 +139,9 @@ export default function Historique() {
             onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-      </div>
+      </motion.div>
 
-      {/* Table */}
-      <div className="bg-card border rounded-lg overflow-hidden">
+      <motion.div className="bg-card border rounded-lg overflow-hidden" variants={fadeUp}>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/30">
@@ -158,8 +167,14 @@ export default function Historique() {
                 <td colSpan={8} className="text-center py-12 text-muted-foreground">Aucun achat trouvé</td>
               </tr>
             ) : (
-              paginated.map((a: any) => (
-                <tr key={a.id} className={`border-b last:border-0 hover:bg-muted/20 ${selected.includes(a.id) ? "bg-primary/5" : ""}`}>
+              paginated.map((a: any, i: number) => (
+                <motion.tr
+                  key={a.id}
+                  className={`border-b last:border-0 hover:bg-muted/20 ${selected.includes(a.id) ? "bg-primary/5" : ""}`}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03, duration: 0.3 }}
+                >
                   <td className="px-4 py-2.5">
                     <input type="checkbox" checked={selected.includes(a.id)} onChange={() => toggleSelect(a.id)} />
                   </td>
@@ -172,12 +187,12 @@ export default function Historique() {
                   <td className="px-4 py-2.5">
                     <button
                       onClick={() => handleDelete(a.id)}
-                      className="p-1 rounded hover:bg-red-50 text-muted-foreground hover:text-red-500"
+                      className="p-1 rounded hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </td>
-                </tr>
+                </motion.tr>
               ))
             )}
           </tbody>
@@ -206,7 +221,7 @@ export default function Historique() {
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -5,6 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, AreaChart, Area
 } from "recharts";
+import { motion, AnimatePresence } from "framer-motion";
 
 const COLORS = ["#22c55e", "#f59e0b", "#3b82f6", "#a855f7", "#ef4444", "#06b6d4", "#f97316"];
 
@@ -13,7 +14,12 @@ function ProgressBar({ pct }: { pct: number }) {
   const color = getProgressColor(pct);
   return (
     <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
-      <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${clamped}%` }} />
+      <motion.div
+        className={`h-full rounded-full ${color}`}
+        initial={{ width: 0 }}
+        animate={{ width: `${clamped}%` }}
+        transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+      />
     </div>
   );
 }
@@ -47,7 +53,14 @@ export default function Statistiques() {
   const renderContent = () => {
     if (activeTab === "produit") {
       return (
-        <div className="space-y-6">
+        <motion.div
+          key="produit"
+          className="space-y-6"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.3 }}
+        >
           <div className="bg-card border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead>
@@ -68,7 +81,13 @@ export default function Statistiques() {
                   parProduit.map((d: any, i: number) => {
                     const pct = d.budget_prevu ? Math.round((d.total_depense / d.budget_prevu) * 100) : 0;
                     return (
-                      <tr key={i} className="border-b last:border-0 hover:bg-muted/20">
+                      <motion.tr
+                        key={i}
+                        className="border-b last:border-0 hover:bg-muted/20"
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.025, duration: 0.3 }}
+                      >
                         <td className="px-4 py-2.5 font-medium">
                           {d.emoji && <span className="mr-1">{d.emoji}</span>}
                           {d.produit_nom}
@@ -88,7 +107,7 @@ export default function Statistiques() {
                             </div>
                           ) : <span className="text-xs text-muted-foreground">—</span>}
                         </td>
-                      </tr>
+                      </motion.tr>
                     );
                   })
                 )}
@@ -96,7 +115,12 @@ export default function Statistiques() {
             </table>
           </div>
           {parProduit.filter(d => d.total_depense > 0).length > 0 && (
-            <div className="bg-card border rounded-lg p-4">
+            <motion.div
+              className="bg-card border rounded-lg p-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+            >
               <div className="text-sm font-medium mb-4">Dépenses réelles par produit</div>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={parProduit.filter(d => d.total_depense > 0).slice(0, 10)} margin={{ top: 4, right: 20, left: -20, bottom: 60 }}>
@@ -111,16 +135,23 @@ export default function Statistiques() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       );
     }
 
     if (activeTab === "categorie") {
       const withData = parCategorie.filter((d: any) => d.total_depense > 0);
       return (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <motion.div
+          key="categorie"
+          className="grid grid-cols-1 xl:grid-cols-2 gap-6"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.3 }}
+        >
           <div className="bg-card border rounded-lg p-4">
             <div className="text-sm font-medium mb-4">Répartition par catégorie</div>
             {withData.length === 0 ? (
@@ -161,26 +192,39 @@ export default function Statistiques() {
                   <tr><td colSpan={3} className="text-center py-8 text-muted-foreground">Aucune donnée</td></tr>
                 ) : (
                   parCategorie.map((d: any, i: number) => (
-                    <tr key={i} className="border-b last:border-0 hover:bg-muted/20">
+                    <motion.tr
+                      key={i}
+                      className="border-b last:border-0 hover:bg-muted/20"
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.3 }}
+                    >
                       <td className="px-4 py-2.5 flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
                         {d.categorie_nom}
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-primary">{formatFBu(d.total_depense)}</td>
                       <td className="px-4 py-2.5 text-right tabular-nums">{d.budget_prevu ? formatFBu(d.budget_prevu) : "—"}</td>
-                    </tr>
+                    </motion.tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       );
     }
 
     if (activeTab === "evolution") {
       return (
-        <div className="bg-card border rounded-lg p-4">
+        <motion.div
+          key="evolution"
+          className="bg-card border rounded-lg p-4"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.3 }}
+        >
           <div className="text-sm font-medium mb-4">Évolution mensuelle des dépenses</div>
           {evolutionMensuelle.length === 0 ? (
             <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">Aucune donnée</div>
@@ -206,13 +250,12 @@ export default function Statistiques() {
               </AreaChart>
             </ResponsiveContainer>
           )}
-        </div>
+        </motion.div>
       );
     }
 
     if (activeTab === "heatmap") {
       const maxVal = heatmapJours.reduce((m: number, d: any) => Math.max(m, d.montant ?? 0), 1);
-
       const getHeatColor = (v: number) => {
         const ratio = v / maxVal;
         if (ratio === 0) return "rgba(34,197,94,0.06)";
@@ -221,18 +264,22 @@ export default function Statistiques() {
         if (ratio < 0.8) return "rgba(245,158,11,0.75)";
         return "rgba(239,68,68,0.85)";
       };
-
       const grid: Record<string, number> = {};
       heatmapJours.forEach((d: any) => { grid[`${d.produit_id}-${d.jour}`] = d.montant; });
-
       const produitIds: number[] = [...new Set(heatmapJours.map((d: any) => d.produit_id))] as number[];
       const produitNoms: Record<number, string> = {};
       heatmapJours.forEach((d: any) => { produitNoms[d.produit_id] = d.produit_nom; });
-
       const days = Array.from({ length: 30 }, (_, i) => i + 1);
 
       return (
-        <div className="bg-card border rounded-lg p-4 overflow-auto">
+        <motion.div
+          key="heatmap"
+          className="bg-card border rounded-lg p-4 overflow-auto"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.3 }}
+        >
           <div className="text-sm font-medium mb-4">Heatmap des achats — Jours × Produits</div>
           {produitIds.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground text-sm">Aucune donnée d'achat ce mois</div>
@@ -249,21 +296,28 @@ export default function Statistiques() {
                     </tr>
                   </thead>
                   <tbody>
-                    {produitIds.map(pid => (
-                      <tr key={pid}>
+                    {produitIds.map((pid, ri) => (
+                      <motion.tr
+                        key={pid}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: ri * 0.03, duration: 0.3 }}
+                      >
                         <td className="pr-3 text-right whitespace-nowrap text-muted-foreground py-0.5">{produitNoms[pid]}</td>
                         {days.map(d => {
                           const val = grid[`${pid}-${d}`] ?? 0;
                           return (
                             <td key={d} title={val > 0 ? formatFBu(val) : "Aucun achat"}>
-                              <div
-                                className="w-6 h-6 rounded-sm transition-opacity hover:opacity-75 cursor-default"
+                              <motion.div
+                                className="w-6 h-6 rounded-sm cursor-default"
                                 style={{ background: getHeatColor(val) }}
+                                whileHover={{ scale: 1.3, zIndex: 10 }}
+                                transition={{ duration: 0.15 }}
                               />
                             </td>
                           );
                         })}
-                      </tr>
+                      </motion.tr>
                     ))}
                   </tbody>
                 </table>
@@ -277,13 +331,18 @@ export default function Statistiques() {
               </div>
             </>
           )}
-        </div>
+        </motion.div>
       );
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <motion.div
+      className="p-6 space-y-6"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold">Statistiques</h1>
@@ -305,18 +364,27 @@ export default function Statistiques() {
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors relative ${
               activeTab === t.key
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {t.label}
+            {activeTab === t.key && (
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
+                layoutId="tabIndicator"
+                transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+              />
+            )}
           </button>
         ))}
       </div>
 
-      {renderContent()}
-    </div>
+      <AnimatePresence mode="wait">
+        {renderContent()}
+      </AnimatePresence>
+    </motion.div>
   );
 }
