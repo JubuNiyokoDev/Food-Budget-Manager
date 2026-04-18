@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useGetAchats, useGetProduits, useDeleteAchat, useBulkDeleteAchats } from "@workspace/api-client-react";
 import { formatFBu, formatDate, getMoisCurrent } from "@/lib/format";
-import { Trash2, Search, Filter } from "lucide-react";
+import { Trash2, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 
-const fadeUp = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } } };
+const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
 export default function Historique() {
   const { toast } = useToast();
@@ -40,7 +40,6 @@ export default function Historique() {
 
   const toggleSelect = (id: number) =>
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-
   const toggleAll = () =>
     setSelected(selected.length === paginated.length && paginated.length > 0 ? [] : paginated.map((a: any) => a.id));
 
@@ -81,116 +80,99 @@ export default function Historique() {
     return { val, label };
   });
 
+  const inputCls = "bg-muted/50 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-card transition-all";
+
   return (
-    <motion.div className="p-6 space-y-4" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.07 } } }}>
-      <motion.div className="flex items-center justify-between" variants={fadeUp}>
+    <motion.div className="p-6 space-y-5"
+      initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease }}>
+
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Historique des achats</h1>
-          <p className="text-sm text-muted-foreground">{filtered.length} achat(s) — Total : {formatFBu(totalMontant)}</p>
+          <h1 className="text-2xl font-bold tracking-tight">Historique</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {filtered.length} achat(s) — Total : <span className="font-semibold text-primary">{formatFBu(totalMontant)}</span>
+          </p>
         </div>
         <AnimatePresence>
           {selected.length > 0 && (
             <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.88 }}
               transition={{ duration: 0.2 }}
               onClick={handleBulkDelete}
-              className="flex items-center gap-2 bg-red-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-red-600"
+              className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-red-600 transition-colors shadow-sm"
             >
               <Trash2 className="w-4 h-4" />
               Supprimer ({selected.length})
             </motion.button>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
 
-      <motion.div className="bg-card border rounded-lg p-3 flex flex-wrap gap-3 items-center" variants={fadeUp}>
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          <select
-            className="border rounded-md px-2 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            value={moisFilter}
-            onChange={e => { setMoisFilter(e.target.value); setPage(1); setSelected([]); }}
-          >
-            {monthOptions.map(m => (
-              <option key={m.val} value={m.val}>{m.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <select
-          className="border rounded-md px-2 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-          value={produitFilter ?? ""}
-          onChange={e => { setProduitFilter(e.target.value ? parseInt(e.target.value) : null); setPage(1); }}
-        >
-          <option value="">Tous les produits</option>
-          {(produits ?? []).map((p: any) => (
-            <option key={p.id} value={p.id}>{p.nom}</option>
-          ))}
+      <div className="bg-card rounded-2xl shadow-sm p-4 flex flex-wrap gap-3 items-center">
+        <Filter className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        <select className={inputCls} value={moisFilter} onChange={e => { setMoisFilter(e.target.value); setPage(1); setSelected([]); }}>
+          {monthOptions.map(m => <option key={m.val} value={m.val}>{m.label}</option>)}
         </select>
-
-        <div className="flex items-center gap-2 ml-auto">
+        <select className={inputCls} value={produitFilter ?? ""} onChange={e => { setProduitFilter(e.target.value ? parseInt(e.target.value) : null); setPage(1); }}>
+          <option value="">Tous les produits</option>
+          {(produits ?? []).map((p: any) => <option key={p.id} value={p.id}>{p.nom}</option>)}
+        </select>
+        <div className="flex items-center gap-2 ml-auto bg-muted/50 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-primary/30 transition-all">
           <Search className="w-4 h-4 text-muted-foreground" />
           <input
-            className="border rounded-md px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary w-48"
+            className="bg-transparent text-sm focus:outline-none w-44 placeholder-muted-foreground"
             placeholder="Rechercher..."
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div className="bg-card border rounded-lg overflow-hidden" variants={fadeUp}>
+      <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b bg-muted/30">
-              <th className="px-4 py-2 w-8">
-                <input
-                  type="checkbox"
-                  checked={selected.length === paginated.length && paginated.length > 0}
-                  onChange={toggleAll}
-                />
+            <tr className="bg-muted/30">
+              <th className="px-4 py-3 w-8">
+                <input type="checkbox" checked={selected.length === paginated.length && paginated.length > 0} onChange={toggleAll} className="rounded" />
               </th>
-              <th className="text-left px-4 py-2 text-muted-foreground font-medium">Date</th>
-              <th className="text-left px-4 py-2 text-muted-foreground font-medium">Produit</th>
-              <th className="text-right px-4 py-2 text-muted-foreground font-medium">Qté</th>
-              <th className="text-right px-4 py-2 text-muted-foreground font-medium">Prix unit.</th>
-              <th className="text-right px-4 py-2 text-muted-foreground font-medium">Montant</th>
-              <th className="text-left px-4 py-2 text-muted-foreground font-medium">Note</th>
-              <th className="px-4 py-2 w-10"></th>
+              <th className="text-left px-4 py-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Date</th>
+              <th className="text-left px-4 py-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Produit</th>
+              <th className="text-right px-4 py-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Qté</th>
+              <th className="text-right px-4 py-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Prix unit.</th>
+              <th className="text-right px-4 py-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Montant</th>
+              <th className="text-left px-4 py-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Note</th>
+              <th className="px-4 py-3 w-10"></th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-border/30">
             {paginated.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-12 text-muted-foreground">Aucun achat trouvé</td>
+                <td colSpan={8} className="text-center py-16 text-muted-foreground">Aucun achat trouvé</td>
               </tr>
             ) : (
               paginated.map((a: any, i: number) => (
                 <motion.tr
                   key={a.id}
-                  className={`border-b last:border-0 hover:bg-muted/20 ${selected.includes(a.id) ? "bg-primary/5" : ""}`}
-                  initial={{ opacity: 0, y: 8 }}
+                  className={`hover:bg-muted/20 transition-colors ${selected.includes(a.id) ? "bg-primary/5" : ""}`}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.03, duration: 0.3 }}
+                  transition={{ delay: i * 0.025, duration: 0.3, ease }}
                 >
-                  <td className="px-4 py-2.5">
-                    <input type="checkbox" checked={selected.includes(a.id)} onChange={() => toggleSelect(a.id)} />
+                  <td className="px-4 py-3">
+                    <input type="checkbox" checked={selected.includes(a.id)} onChange={() => toggleSelect(a.id)} className="rounded" />
                   </td>
-                  <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">{formatDate(a.date)}</td>
-                  <td className="px-4 py-2.5 font-medium">{a.produit_nom}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums">{a.quantite} {a.unite}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">{formatFBu(a.prix_unitaire)}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-primary">{formatFBu(a.montant)}</td>
-                  <td className="px-4 py-2.5 text-muted-foreground text-xs max-w-32 truncate">{a.note ?? "-"}</td>
-                  <td className="px-4 py-2.5">
-                    <button
-                      onClick={() => handleDelete(a.id)}
-                      className="p-1 rounded hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors"
-                    >
+                  <td className="px-4 py-3 whitespace-nowrap text-muted-foreground text-xs">{formatDate(a.date)}</td>
+                  <td className="px-4 py-3 font-medium">{a.produit_nom}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{a.quantite} {a.unite}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatFBu(a.prix_unitaire)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums font-semibold text-primary">{formatFBu(a.montant)}</td>
+                  <td className="px-4 py-3 text-muted-foreground text-xs max-w-32 truncate">{a.note ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    <motion.button whileTap={{ scale: 0.85 }} onClick={() => handleDelete(a.id)}
+                      className="p-1.5 rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors">
                       <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    </motion.button>
                   </td>
                 </motion.tr>
               ))
@@ -199,29 +181,21 @@ export default function Historique() {
         </table>
 
         {totalPages > 1 && (
-          <div className="px-4 py-3 border-t flex items-center justify-between bg-muted/20">
-            <span className="text-xs text-muted-foreground">
-              Page {page} / {totalPages} — {filtered.length} résultats
-            </span>
+          <div className="px-4 py-3 bg-muted/20 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Page {page} / {totalPages} — {filtered.length} résultats</span>
             <div className="flex gap-1">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1 text-xs border rounded hover:bg-muted disabled:opacity-40"
-              >
-                Préc.
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                className="p-1.5 rounded-lg hover:bg-muted disabled:opacity-40 transition-colors">
+                <ChevronLeft className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1 text-xs border rounded hover:bg-muted disabled:opacity-40"
-              >
-                Suiv.
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                className="p-1.5 rounded-lg hover:bg-muted disabled:opacity-40 transition-colors">
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
     </motion.div>
   );
 }

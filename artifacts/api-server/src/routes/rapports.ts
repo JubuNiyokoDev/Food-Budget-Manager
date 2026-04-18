@@ -33,31 +33,32 @@ function generateRapportMensuel(mois: string) {
 
   const totalDepense = (achats as Array<{ prix_paye: number }>).reduce((s, a) => s + a.prix_paye, 0);
 
-  return {
-    budget,
-    achats,
-    totalDepense,
-    mois,
-  };
+  return { budget, achats, totalDepense, mois };
 }
 
 router.post("/rapports/generer", async (req, res) => {
-  const { type, periode, format, titre } = req.body as {
-    type: string; periode: string; format: string; titre: string;
-  };
-
   try {
-    const data = generateRapportMensuel(periode);
-    const reportTitle = titre || `Rapport ${type} - ${periode}`;
+    const body = req.body as Record<string, string | undefined>;
+
+    const periodeEffective = body.periode || body.mois;
+    if (!periodeEffective) {
+      return res.status(400).json({ success: false, message: "Le champ 'mois' est requis (format YYYY-MM)." });
+    }
+
+    const typeEffectif = body.type || "mensuel";
+    const formatEffectif = body.format || "json";
+    const titreEffectif = body.titre || `Rapport ${typeEffectif} — ${periodeEffective}`;
+
+    const data = generateRapportMensuel(periodeEffective);
 
     let contenuBase64 = "";
     let nomFichier = "";
 
-    if (format === "json") {
-      const jsonStr = JSON.stringify(data, null, 2);
-      contenuBase64 = Buffer.from(jsonStr).toString("base64");
-      nomFichier = `rapport_${periode}.json`;
-    } else if (format === "csv") {
+    if (formatEffectif === "json") {
+      contenuBase64 = Buffer.from(JSON.stringify(data, null, 2)).toString("base64");
+      nomFichier = `rapport_${periodeEffective}.json`;
+
+    } else if (formatEffectif === "csv") {
       const rows = (data.achats as Array<Record<string, unknown>>).map(a => ({
         date: a.date_achat as string,
         produit: a.produit_nom as string,
@@ -67,10 +68,10 @@ router.post("/rapports/generer", async (req, res) => {
         prix_paye: a.prix_paye as number,
         notes: a.notes as string,
       }));
-      const csv = generateCSV(rows, ["date", "produit", "categorie", "lieu", "quantite", "prix_paye", "notes"]);
-      contenuBase64 = Buffer.from(csv).toString("base64");
-      nomFichier = `rapport_${periode}.csv`;
-    } else if (format === "excel") {
+      contenuBase64 = Buffer.from(generateCSV(rows, ["date", "produit", "categorie", "lieu", "quantite", "prix_paye", "notes"])).toString("base64");
+      nomFichier = `rapport_${periodeEffective}.csv`;
+
+    } else if (formatEffectif === "excel") {
       const wsData = [
         ["Date", "Produit", "Catégorie", "Lieu", "Quantité", "Prix payé (FBu)", "Notes"],
         ...(data.achats as Array<Record<string, unknown>>).map(a => [
@@ -80,61 +81,57 @@ router.post("/rapports/generer", async (req, res) => {
         [],
         ["", "", "", "", "TOTAL", data.totalDepense, ""],
       ];
-
       const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      XLSX.utils.book_append_sheet(wb, ws, "Achats");
-
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(wsData), "Achats");
       const summaryData = [
         ["Rapport Mensuel Complet"],
-        ["Période", periode],
+        ["Période", periodeEffective],
         ["Budget prévu", data.budget?.budget_total_prevu ?? "N/A"],
         ["Total dépensé", data.totalDepense],
         ["Restant", (data.budget?.budget_total_prevu ?? 0) - data.totalDepense],
       ];
-      const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-      XLSX.utils.book_append_sheet(wb, wsSummary, "Résumé");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryData), "Résumé");
+      contenuBase64 = Buffer.from(XLSX.write(wb, { type: "buffer", bookType: "xlsx" })).toString("base64");
+      nomFichier = `rapport_${periodeEffective}.xlsx`;
 
-      const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
-      contenuBase64 = Buffer.from(buffer).toString("base64");
-      nomFichier = `rapport_${periode}.xlsx`;
     } else {
       const lines = [
-        `RAPPORT MENSUEL - ${periode}`,
+        `RAPPORT MENSUEL — ${periodeEffective}`,
         "=".repeat(50),
-        "",
-        `Budget prévu : ${formatFBu(data.budget?.budget_total_prevu ?? 0)}`,
+        `Budget prévu  : ${formatFBu(data.budget?.budget_total_prevu ?? 0)}`,
         `Total dépensé : ${formatFBu(data.totalDepense)}`,
-        `Restant : ${formatFBu((data.budget?.budget_total_prevu ?? 0) - data.totalDepense)}`,
+        `Restant       : ${formatFBu((data.budget?.budget_total_prevu ?? 0) - data.totalDepense)}`,
         "",
         "DÉTAIL DES ACHATS",
         "-".repeat(50),
         ...(data.achats as Array<Record<string, unknown>>).map(a =>
-          `${a.date_achat} | ${a.produit_nom} | ${formatFBu(a.prix_paye as number)} | ${a.lieu_achat || "-"}`
+          `${a.date_achat} | ${a.produit_nom} | ${formatFBu(a.prix_paye as number)}`
         ),
         "",
-        `TOTAL: ${formatFBu(data.totalDepense)}`,
+        `TOTAL : ${formatFBu(data.totalDepense)}`,
       ];
       contenuBase64 = Buffer.from(lines.join("\n")).toString("base64");
-      nomFichier = `rapport_${periode}.txt`;
+      nomFichier = `rapport_${periodeEffective}.txt`;
     }
 
     const taille = Buffer.from(contenuBase64, "base64").length;
     const result = db.prepare(`
       INSERT INTO rapports_historique (titre, type, periode, format, taille_octets)
       VALUES (?, ?, ?, ?, ?)
-    `).run(reportTitle, type, periode, format, taille);
+    `).run(titreEffectif, typeEffectif, periodeEffective, formatEffectif, taille);
 
-    res.json({
+    return res.json({
       success: true,
       rapport_id: result.lastInsertRowid,
       nom_fichier: nomFichier,
       contenu_base64: contenuBase64,
-      format,
-      titre: reportTitle,
+      format: formatEffectif,
+      titre: titreEffectif,
     });
-  } catch (err) {
-    res.status(500).json({ success: false, message: String(err) });
+
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return res.status(500).json({ success: false, message: `Erreur lors de la génération : ${message}` });
   }
 });
 
